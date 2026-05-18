@@ -16,6 +16,7 @@ export interface CoffeeShop {
   reviews: number
   location: string
   address: string
+  district: string
   tags: string[]
   hours: {
     day: string
@@ -29,6 +30,48 @@ export interface CoffeeShop {
     lng: number
   }
 }
+
+export const istanbulDistricts = [
+  "Adalar",
+  "Arnavutkoy",
+  "Atasehir",
+  "Avcilar",
+  "Bagcilar",
+  "Bahcelievler",
+  "Bakirkoy",
+  "Basaksehir",
+  "Bayrampasa",
+  "Besiktas",
+  "Beykoz",
+  "Beylikduzu",
+  "Beyoglu",
+  "Buyukcekmece",
+  "Catalca",
+  "Cekmekoy",
+  "Esenler",
+  "Esenyurt",
+  "Eyupsultan",
+  "Fatih",
+  "Gaziosmanpasa",
+  "Gungoren",
+  "Kadikoy",
+  "Kagithane",
+  "Kartal",
+  "Kucukcekmece",
+  "Maltepe",
+  "Pendik",
+  "Sancaktepe",
+  "Sariyer",
+  "Silivri",
+  "Sultanbeyli",
+  "Sultangazi",
+  "Sile",
+  "Sisli",
+  "Tuzla",
+  "Umraniye",
+  "Uskudar",
+  "Zeytinburnu",
+]
 
 export const coffeeShops: CoffeeShop[] = [
   {
@@ -47,6 +90,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 324,
     location: "123 Main St, Downtown",
     address: "123 Main Street, Downtown District, Istanbul 34000",
+    district: "Besiktas",
     tags: ["wifi", "vegan"],
     hours: [
       { day: "Pazartesi", time: "07:00 - 22:00" },
@@ -83,6 +127,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 512,
     location: "456 Oak Ave, Midtown",
     address: "456 Oak Avenue, Midtown, Istanbul 34100",
+    district: "Kadikoy",
     tags: ["wifi", "pet"],
     hours: [
       { day: "Pazartesi", time: "06:30 - 21:00" },
@@ -117,6 +162,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 198,
     location: "789 Elm St, Westside",
     address: "789 Elm Street, Westside, Istanbul 34200",
+    district: "Sisli",
     tags: ["vegan", "pet"],
     hours: [
       { day: "Pazartesi", time: "08:00 - 20:00" },
@@ -153,6 +199,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 267,
     location: "321 Pine Rd, Eastside",
     address: "321 Pine Road, Eastside District, Istanbul 34300",
+    district: "Beyoglu",
     tags: ["wifi"],
     hours: [
       { day: "Pazartesi", time: "07:00 - 23:00" },
@@ -187,6 +234,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 143,
     location: "654 Cedar Ln, Northside",
     address: "654 Cedar Lane, Northside, Istanbul 34400",
+    district: "Sariyer",
     tags: ["wifi", "vegan", "pet"],
     hours: [
       { day: "Pazartesi", time: "08:00 - 21:00" },
@@ -219,6 +267,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 89,
     location: "987 Birch Blvd, Southside",
     address: "987 Birch Boulevard, Southside, Istanbul 34500",
+    district: "Uskudar",
     tags: ["wifi"],
     hours: [
       { day: "Pazartesi", time: "06:00 - 19:00" },
@@ -252,6 +301,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 421,
     location: "147 Maple Dr, Harbor District",
     address: "147 Maple Drive, Harbor District, Istanbul 34600",
+    district: "Kadikoy",
     tags: ["vegan"],
     hours: [
       { day: "Pazartesi", time: "07:30 - 22:00" },
@@ -287,6 +337,7 @@ export const coffeeShops: CoffeeShop[] = [
     reviews: 256,
     location: "258 Walnut Way, Arts Quarter",
     address: "258 Walnut Way, Arts Quarter, Istanbul 34700",
+    district: "Besiktas",
     tags: ["wifi", "pet"],
     hours: [
       { day: "Pazartesi", time: "08:00 - 22:00" },
