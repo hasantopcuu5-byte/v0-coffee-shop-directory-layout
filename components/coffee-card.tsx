@@ -16,7 +16,6 @@ interface CoffeeShop {
 
 interface CoffeeCardProps {
   shop: CoffeeShop
-  onHover?: (id: number | null) => void
 }
 
 const tagIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -25,15 +24,11 @@ const tagIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pet: Dog,
 }
 
-export function CoffeeCard({ shop, onHover }: CoffeeCardProps) {
+export function CoffeeCard({ shop }: CoffeeCardProps) {
   const [isLiked, setIsLiked] = useState(false)
 
   return (
-    <div
-      className="group relative cursor-pointer"
-      onMouseEnter={() => onHover?.(shop.id)}
-      onMouseLeave={() => onHover?.(null)}
-    >
+    <div className="group relative cursor-pointer">
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
         <img
