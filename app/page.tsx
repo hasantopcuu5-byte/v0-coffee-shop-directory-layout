@@ -6,7 +6,7 @@ import { FilterBar } from "@/components/filter-bar"
 import { CoffeeCard } from "@/components/coffee-card"
 import { coffeeShops, istanbulDistricts } from "@/lib/coffee-data"
 import { PageTransition } from "@/components/page-transition"
-import { X, Search, MapPin } from "lucide-react"
+import { X, Search, MapPin, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
