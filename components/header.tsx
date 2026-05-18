@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 interface HeaderProps {
-  onSearchClick?: () => void
+  onCafeSearchClick?: () => void
+  onDistrictClick?: () => void
+  selectedDistrict?: string | null
 }
 
-export function Header({ onSearchClick }: HeaderProps) {
+export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }: HeaderProps) {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -25,18 +27,31 @@ export function Header({ onSearchClick }: HeaderProps) {
           </span>
         </Link>
 
-        {/* Search Trigger - Desktop */}
-        <button
-          onClick={onSearchClick}
-          className="hidden md:flex flex-1 max-w-xl items-center gap-3 h-11 rounded-full border border-border bg-secondary/50 px-4 text-sm text-muted-foreground hover:border-primary/50 hover:bg-secondary/70 transition-all cursor-pointer"
-        >
-          <Search className="h-4 w-4" />
-          <span className="flex-1 text-left">Cafe veya ilce ara...</span>
-          <div className="flex items-center gap-1 text-xs bg-secondary px-2 py-1 rounded-full">
-            <MapPin className="h-3 w-3" />
-            <span>Istanbul</span>
-          </div>
-        </button>
+        {/* Search Bar - Desktop */}
+        <div className="hidden md:flex flex-1 max-w-xl items-center h-11 rounded-full border border-border bg-secondary/50 overflow-hidden">
+          {/* Cafe Search Area */}
+          <button
+            onClick={onCafeSearchClick}
+            className="flex-1 flex items-center gap-3 h-full px-4 text-sm text-muted-foreground hover:bg-secondary/70 transition-all cursor-pointer"
+          >
+            <Search className="h-4 w-4" />
+            <span className="flex-1 text-left">Cafe ara...</span>
+          </button>
+          
+          {/* Divider */}
+          <div className="w-px h-6 bg-border" />
+          
+          {/* District Selection Area */}
+          <button
+            onClick={onDistrictClick}
+            className="flex items-center gap-2 h-full px-4 text-sm hover:bg-secondary/70 transition-all cursor-pointer"
+          >
+            <MapPin className="h-4 w-4 text-primary" />
+            <span className="font-medium text-foreground">
+              {selectedDistrict || "Istanbul"}
+            </span>
+          </button>
+        </div>
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2">
@@ -45,7 +60,7 @@ export function Header({ onSearchClick }: HeaderProps) {
             variant="ghost"
             size="icon"
             className="md:hidden rounded-full"
-            onClick={onSearchClick}
+            onClick={onCafeSearchClick}
           >
             <Search className="h-5 w-5" />
             <span className="sr-only">Search</span>

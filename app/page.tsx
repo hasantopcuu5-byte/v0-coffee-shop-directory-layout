@@ -1,36 +1,48 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Header } from "@/components/header"
 import { FilterBar } from "@/components/filter-bar"
 import { CoffeeCard } from "@/components/coffee-card"
-import { SearchBar } from "@/components/search-bar"
-import { coffeeShops } from "@/lib/coffee-data"
+import { coffeeShops, istanbulDistricts } from "@/lib/coffee-data"
 import { PageTransition } from "@/components/page-transition"
-import { X } from "lucide-react"
+import { X, Search, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export default function CoffeeDirectoryPage() {
-  const [showSearchModal, setShowSearchModal] = useState(false)
-  const [filter, setFilter] = useState<{ type: "name" | "district" | null; value: string }>({
-    type: null,
-    value: ""
-  })
+  const [showCafeSearchModal, setShowCafeSearchModal] = useState(false)
+  const [showDistrictModal, setShowDistrictModal] = useState(false)
+  const [cafeSearch, setCafeSearch] = useState("")
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
+  
+  const cafeInputRef = useRef<HTMLInputElement>(null)
 
-  // Filter coffee shops based on current filter
-  const filteredShops = filter.type === null
-    ? coffeeShops
-    : filter.type === "name"
-      ? coffeeShops.filter(shop => 
-          shop.name.toLowerCase().includes(filter.value.toLowerCase())
-        )
-      : coffeeShops.filter(shop => shop.district === filter.value)
+  // Filter coffee shops based on district only (cafe search navigates directly)
+  const filteredShops = selectedDistrict
+    ? coffeeShops.filter(shop => shop.district === selectedDistrict)
+    : coffeeShops
+
+  // Filtered cafe suggestions
+  const cafeSuggestions = cafeSearch.length > 0
+    ? coffeeShops.filter(shop => 
+        shop.name.toLowerCase().includes(cafeSearch.toLowerCase())
+      )
+    : []
+
+  // Focus input when cafe search modal opens
+  useEffect(() => {
+    if (showCafeSearchModal && cafeInputRef.current) {
+      setTimeout(() => cafeInputRef.current?.focus(), 100)
+    }
+  }, [showCafeSearchModal])
 
   // Close modal on escape key
   useEffect(() => {
     function handleEscape(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        setShowSearchModal(false)
+        setShowCafeSearchModal(false)
+        setShowDistrictModal(false)
       }
     }
     document.addEventListener("keydown", handleEscape)
@@ -39,7 +51,7 @@ export default function CoffeeDirectoryPage() {
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (showSearchModal) {
+    if (showCafeSearchModal || showDistrictModal) {
       document.body.style.overflow = "hidden"
     } else {
       document.body.style.overflow = ""
@@ -47,14 +59,20 @@ export default function CoffeeDirectoryPage() {
     return () => {
       document.body.style.overflow = ""
     }
-  }, [showSearchModal])
+  }, [showCafeSearchModal, showDistrictModal])
+
+  const handleDistrictSelect = (district: string) => {
+    setSelectedDistrict(district)
+    setShowDistrictModal(false)
+  }
+
+  const handleClearDistrict = () => {
+    setSelectedDistrict(null)
+  }
 
   const getFilterDescription = () => {
-    if (filter.type === "district") {
-      return `${filter.value} bolgesinde`
-    }
-    if (filter.type === "name") {
-      return `"${filter.value}" aramasinda`
+    if (selectedDistrict) {
+      return `${selectedDistrict} bolgesinde`
     }
     return "yakininizdaki"
   }
@@ -62,7 +80,11 @@ export default function CoffeeDirectoryPage() {
   return (
     <PageTransition>
     <div className="min-h-screen bg-background">
-      <Header onSearchClick={() => setShowSearchModal(true)} />
+      <Header 
+        onCafeSearchClick={() => setShowCafeSearchModal(true)} 
+        onDistrictClick={() => setShowDistrictModal(true)}
+        selectedDistrict={selectedDistrict}
+      />
       <FilterBar />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -71,14 +93,14 @@ export default function CoffeeDirectoryPage() {
             {filteredShops.length} kahveci {getFilterDescription()}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            {filter.type 
-              ? "Filtreyi temizlemek icin arama butonuna tiklayin"
+            {selectedDistrict 
+              ? "Farkli ilce secmek icin ust bardaki ilce alanina tiklayin"
               : "Bolgenizdeki en iyi kafeleri kesfedin"
             }
           </p>
-          {filter.type && (
+          {selectedDistrict && (
             <button
-              onClick={() => setFilter({ type: null, value: "" })}
+              onClick={handleClearDistrict}
               className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
             >
               <span>Filtreyi Temizle</span>
@@ -103,13 +125,13 @@ export default function CoffeeDirectoryPage() {
               Kahveci bulunamadi
             </h2>
             <p className="text-muted-foreground mb-4">
-              {filter.type === "district" 
-                ? `${filter.value} bolgesinde henuz kayitli kahveci yok.`
+              {selectedDistrict 
+                ? `${selectedDistrict} bolgesinde henuz kayitli kahveci yok.`
                 : "Aramanizla eslesen kahveci bulunamadi."
               }
             </p>
             <button
-              onClick={() => setFilter({ type: null, value: "" })}
+              onClick={handleClearDistrict}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
             >
               Tum Kahvecileri Goster
@@ -135,11 +157,11 @@ export default function CoffeeDirectoryPage() {
         </div>
       </footer>
 
-      {/* Search Modal */}
+      {/* Cafe Search Modal */}
       <div
         className={cn(
           "fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] transition-all duration-300",
-          showSearchModal 
+          showCafeSearchModal 
             ? "opacity-100 pointer-events-auto" 
             : "opacity-0 pointer-events-none"
         )}
@@ -148,44 +170,167 @@ export default function CoffeeDirectoryPage() {
         <div 
           className={cn(
             "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300",
-            showSearchModal ? "opacity-100" : "opacity-0"
+            showCafeSearchModal ? "opacity-100" : "opacity-0"
           )}
-          onClick={() => setShowSearchModal(false)}
+          onClick={() => setShowCafeSearchModal(false)}
         />
         
         {/* Modal Content */}
         <div 
           className={cn(
-            "relative w-full max-w-xl mx-4 bg-card border border-border rounded-2xl shadow-2xl p-6 transition-all duration-300",
-            showSearchModal 
+            "relative w-full max-w-xl mx-4 bg-card border border-border rounded-2xl shadow-2xl transition-all duration-300",
+            showCafeSearchModal 
               ? "opacity-100 translate-y-0 scale-100" 
               : "opacity-0 -translate-y-4 scale-95"
           )}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Arama</h2>
+          {/* Search Input */}
+          <div className="p-4 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={cafeInputRef}
+                type="text"
+                value={cafeSearch}
+                onChange={(e) => setCafeSearch(e.target.value)}
+                placeholder="Cafe ismi ara..."
+                className="h-12 w-full rounded-xl border border-border bg-secondary/50 pl-12 pr-12 text-base text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+              <button
+                onClick={() => {
+                  setCafeSearch("")
+                  setShowCafeSearchModal(false)
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Results */}
+          <div className="max-h-[60vh] overflow-y-auto">
+            {cafeSearch.length === 0 ? (
+              <div className="p-6 text-center text-muted-foreground">
+                <Search className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p>Cafe ismi yazarak aramaya baslayin</p>
+              </div>
+            ) : cafeSuggestions.length > 0 ? (
+              <>
+                <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border bg-secondary/30">
+                  {cafeSuggestions.length} sonuc bulundu
+                </div>
+                {cafeSuggestions.map((shop) => (
+                  <Link
+                    key={shop.id}
+                    href={`/shop/${shop.id}`}
+                    className="flex items-center gap-4 px-4 py-3 hover:bg-secondary/50 transition-colors border-b border-border/50 last:border-0"
+                    onClick={() => {
+                      setShowCafeSearchModal(false)
+                      setCafeSearch("")
+                    }}
+                  >
+                    <div className="h-12 w-12 rounded-xl overflow-hidden flex-shrink-0">
+                      <img 
+                        src={shop.image} 
+                        alt={shop.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-medium text-foreground truncate">{shop.name}</p>
+                      <p className="text-sm text-muted-foreground truncate">{shop.district} - {shop.location}</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <span className="text-yellow-500">★</span>
+                      <span>{shop.rating}</span>
+                    </div>
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <div className="p-6 text-center text-muted-foreground">
+                <p>Aradiginiz cafe bulunamadi</p>
+                <p className="text-sm mt-1">Farkli bir isim deneyin</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* District Selection Modal */}
+      <div
+        className={cn(
+          "fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] transition-all duration-300",
+          showDistrictModal 
+            ? "opacity-100 pointer-events-auto" 
+            : "opacity-0 pointer-events-none"
+        )}
+      >
+        {/* Backdrop */}
+        <div 
+          className={cn(
+            "absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300",
+            showDistrictModal ? "opacity-100" : "opacity-0"
+          )}
+          onClick={() => setShowDistrictModal(false)}
+        />
+        
+        {/* Modal Content */}
+        <div 
+          className={cn(
+            "relative w-full max-w-md mx-4 bg-card border border-border rounded-2xl shadow-2xl transition-all duration-300",
+            showDistrictModal 
+              ? "opacity-100 translate-y-0 scale-100" 
+              : "opacity-0 -translate-y-4 scale-95"
+          )}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Ilce secerek filtreleme</h2>
+            </div>
             <button
-              onClick={() => setShowSearchModal(false)}
+              onClick={() => setShowDistrictModal(false)}
               className="p-2 rounded-full hover:bg-secondary transition-colors"
             >
               <X className="h-5 w-5 text-muted-foreground" />
             </button>
           </div>
-          
-          <SearchBar 
-            onFilterChange={(newFilter) => {
-              setFilter(newFilter)
-              // Close modal when a filter is applied
-              if (newFilter.type === "district") {
-                setShowSearchModal(false)
-              }
-            }}
-            currentFilter={filter}
-          />
-          
-          <p className="mt-4 text-xs text-muted-foreground text-center">
-            Cafe ismiyle arayabilir veya ilce secebilirsiniz
-          </p>
+
+          {/* District List */}
+          <div className="max-h-[50vh] overflow-y-auto">
+            {/* Clear Filter Option */}
+            {selectedDistrict && (
+              <button
+                onClick={() => {
+                  setSelectedDistrict(null)
+                  setShowDistrictModal(false)
+                }}
+                className="w-full px-4 py-3 text-left text-sm hover:bg-secondary/50 transition-colors flex items-center justify-between border-b border-border bg-destructive/5 text-destructive"
+              >
+                <span>Filtreyi Temizle</span>
+                <X className="h-4 w-4" />
+              </button>
+            )}
+            
+            {istanbulDistricts.map((district) => (
+              <button
+                key={district}
+                onClick={() => handleDistrictSelect(district)}
+                className={cn(
+                  "w-full px-4 py-3 text-left text-sm hover:bg-secondary/50 transition-colors flex items-center justify-between border-b border-border/50 last:border-0",
+                  selectedDistrict === district && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                <span>{district}</span>
+                {selectedDistrict === district && (
+                  <span className="text-primary font-bold">✓</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>
