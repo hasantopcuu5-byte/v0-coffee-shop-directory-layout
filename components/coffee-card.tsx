@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Star, Wifi, Leaf, Dog, MapPin, Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
@@ -28,7 +29,7 @@ export function CoffeeCard({ shop }: CoffeeCardProps) {
   const [isLiked, setIsLiked] = useState(false)
 
   return (
-    <div className="group relative cursor-pointer">
+    <Link href={`/shop/${shop.id}`} className="group relative block cursor-pointer">
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-muted">
         <img
@@ -88,6 +89,6 @@ export function CoffeeCard({ shop }: CoffeeCardProps) {
           <span className="line-clamp-1">{shop.location}</span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
