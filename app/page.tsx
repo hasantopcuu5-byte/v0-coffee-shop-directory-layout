@@ -1,10 +1,14 @@
+"use client"
+
 import { Header } from "@/components/header"
 import { FilterBar } from "@/components/filter-bar"
 import { CoffeeCard } from "@/components/coffee-card"
 import { coffeeShops } from "@/lib/coffee-data"
+import { PageTransition } from "@/components/page-transition"
 
 export default function CoffeeDirectoryPage() {
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background">
       <Header />
       <FilterBar />
@@ -46,5 +50,6 @@ export default function CoffeeDirectoryPage() {
         </div>
       </footer>
     </div>
+    </PageTransition>
   )
 }

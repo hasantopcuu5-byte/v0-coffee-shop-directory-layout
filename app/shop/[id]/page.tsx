@@ -18,6 +18,7 @@ import {
 import { getCoffeeShopById, type CoffeeShop, type Review } from "@/lib/coffee-data"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { PageTransition } from "@/components/page-transition"
 
 function ImageGallery({ images, shopName }: { images: string[], shopName: string }) {
   const [showModal, setShowModal] = useState(false)
@@ -331,6 +332,7 @@ export default function CoffeeShopDetailPage() {
 
   if (!shop) {
     return (
+      <PageTransition>
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-foreground">Kahveci Bulunamadı</h1>
@@ -340,10 +342,12 @@ export default function CoffeeShopDetailPage() {
           </Link>
         </div>
       </div>
+      </PageTransition>
     )
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -450,5 +454,6 @@ export default function CoffeeShopDetailPage() {
         onClose={() => setShowAllReviews(false)} 
       />
     </div>
+    </PageTransition>
   )
 }
