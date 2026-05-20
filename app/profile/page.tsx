@@ -92,7 +92,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* Profil Resmini Düzenle Butonu (Kalem İkonlu & Galeri Tetiklemeli) */}
+                {/* Profil Resmini Düzenle Butonu */}
                 <button
                   type="button"
                   onClick={handleAvatarClick}
@@ -123,7 +123,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* İstatistik Alanı (İstediğiniz gibi sadece Yorum ve Değerlendirme kaldı) */}
+              {/* İstatistik Alanı (İstediğiniz gibi sadece Yorum ve Değerlendirme Sayısı kaldı) */}
               <div className="rounded-2xl bg-secondary/30 p-5 ring-1 ring-border/50">
                 <h3 className="text-sm font-semibold text-foreground mb-3">BrewMap Yolculuğun</h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
@@ -132,8 +132,8 @@ export default function ProfilePage() {
                     <div className="text-xs text-muted-foreground">Yorum Sayısı</div>
                   </div>
                   <div className="bg-card p-3 rounded-xl border border-border/60">
-                    <div className="text-lg font-bold text-primary font-mono text-yellow-600 dark:text-yellow-500">4.8</div>
-                    <div className="text-xs text-muted-foreground">Değerlendirme Ort.</div>
+                    <div className="text-lg font-bold text-primary">12</div>
+                    <div className="text-xs text-muted-foreground">Değerlendirme Sayısı</div>
                   </div>
                 </div>
               </div>
