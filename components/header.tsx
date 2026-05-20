@@ -31,11 +31,11 @@ interface HeaderProps {
 
 export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }: HeaderProps) {
   const { theme, setTheme } = useTheme()
-  // Simüle edilmiş kullanıcı oturum durumu
+  // Simüle edilmiş kullanıcı oturum durumu (Geliştirme aşaması için true yapıldı)
   const [isLoggedIn, setIsLoggedIn] = useState(true) 
   
-  // Facebook tarzı silüet çizimi - Sitenin bej ve kahve tonlarındaki renk paletiyle uyumlu gömülü SVG
-  const defaultAvatarUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23F4EAE1' stroke='%238C6239' stroke-width='2'/><circle cx='50' cy='38' r='16' fill='%238C6239'/><path d='M50 60c-18 0-32 10-32 22v6h64v-6c0-12-14-22-32-22z' fill='%238C6239'/></svg>"
+  // GÜNCELLENDİ: Artık gömülü kod değil, direkt public klasöründeki güncellediğimiz SVG dosyasını çağırıyor
+  const defaultAvatarUrl = "/placeholder-avatar.svg"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
