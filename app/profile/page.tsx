@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef } from "react"
-import Link from "next/link"
 import { ArrowLeft, User, Calendar, MapPin, Coffee, Sparkles, Mail, Pencil } from "lucide-react"
 import { Header } from "@/components/header"
 import { istanbulDistricts } from "@/lib/coffee-data"
@@ -14,13 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 
 export default function ProfilePage() {
-  // Kahve/Bej renk paletiyle tam uyumlu Facebook tarzı default illüstrasyon profil resmi
-  const defaultAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%23F4EAE1' stroke='%238C6239' stroke-width='2'/><circle cx='50' cy='38' r='16' fill='%238C6239'/><path d='M50 60c-18 0-32 10-32 22v6h64v-6c0-12-14-22-32-22z' fill='%238C6239'/></svg>"
+  // GÜNCELLENDİ: Artık upuzun gömülü kod yok, direkt public klasöründeki kavisli omuzlu SVG'yi okuyor
+  const defaultAvatar = "/placeholder-avatar.svg"
 
   // Kullanıcı bilgileri state yapısı
   const [profileData, setProfileData] = useState({
-    fullName: "Hasan Topçu", // Düzenlenemez alan
-    email: "hasan.topcu@example.com", // Düzenlenemez alan
+    fullName: "Hasan Topçu",
+    email: "hasan.topcu@example.com",
     avatar: defaultAvatar, 
     birthDate: "1998-05-20",
     favoriteDistrict: "Kadikoy",
@@ -31,12 +30,10 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Kalem butonuna basılınca görünmez dosya seçiciyi tetikler (PC/Telefon Galerisi)
   const handleAvatarClick = () => {
     fileInputRef.current?.click()
   }
 
-  // Kullanıcı galeriden resim seçtiğinde çalışan fonksiyon
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -84,7 +81,7 @@ export default function ProfilePage() {
               <div className="rounded-2xl bg-card p-6 text-center shadow-sm ring-1 ring-border flex flex-col items-center">
                 
                 {/* Profil Resmi Alanı */}
-                <div className="relative h-28 w-28 rounded-full overflow-hidden mb-3 ring-4 ring-primary/10 bg-secondary flex items-center justify-center">
+                <div className="relative h-28 w-28 rounded-full overflow-hidden mb-3 ring-4 ring-primary/10 bg-secondary flex items-center justify-center border-border">
                   <img 
                     src={profileData.avatar} 
                     alt={profileData.fullName} 
@@ -123,7 +120,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* İstatistik Alanı (İstediğiniz gibi sadece Yorum ve Değerlendirme Sayısı kaldı) */}
+              {/* İstatistik Alanı */}
               <div className="rounded-2xl bg-secondary/30 p-5 ring-1 ring-border/50">
                 <h3 className="text-sm font-semibold text-foreground mb-3">BrewMap Yolculuğun</h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
@@ -132,8 +129,8 @@ export default function ProfilePage() {
                     <div className="text-xs text-muted-foreground">Yorum Sayısı</div>
                   </div>
                   <div className="bg-card p-3 rounded-xl border border-border/60">
-                    <div className="text-lg font-bold text-primary">12</div>
-                    <div className="text-xs text-muted-foreground">Değerlendirme Sayısı</div>
+                    <div className="text-lg font-bold text-primary font-mono text-yellow-600 dark:text-yellow-500">4.8</div>
+                    <div className="text-xs text-muted-foreground">Değerlendirme Ort.</div>
                   </div>
                 </div>
               </div>
@@ -149,7 +146,7 @@ export default function ProfilePage() {
 
                 <form onSubmit={handleSave} className="space-y-6">
                   
-                  {/* İsim Soyisim (KİLİTLİ ALAN) */}
+                  {/* İsim Soyisim */}
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-muted-foreground flex items-center gap-1.5">
                       <User className="h-4 w-4" /> Ad Soyad (Değiştirilemez)
@@ -177,7 +174,7 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {/* En Çok Takıldığı Cafe Bölgesi (ÖZGÜN İSTANBUL İLÇELERİ LİSTESİ) */}
+                  {/* En Çok Takıldığı Cafe Bölgesi */}
                   <div className="space-y-2">
                     <Label htmlFor="favoriteDistrict" className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4 text-primary" /> En Çok Takıldığı Kafe Bölgesi
@@ -199,7 +196,7 @@ export default function ProfilePage() {
                     </Select>
                   </div>
 
-                  {/* Öneri Alanı 1: Favori Kahve Çeşidi */}
+                  {/* Favori Kahve Çeşidi */}
                   <div className="space-y-2">
                     <Label htmlFor="favoriteCoffee" className="flex items-center gap-1.5">
                       <Coffee className="h-4 w-4 text-primary" /> Favori Kahve Demleme Çeşidi
@@ -221,7 +218,7 @@ export default function ProfilePage() {
                     </Select>
                   </div>
 
-                  {/* Öneri Alanı 2: Kahve Mottosu / Biyografi */}
+                  {/* Kahve Mottosu / Biyografi */}
                   <div className="space-y-2">
                     <Label htmlFor="bio" className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-primary" /> Kahve Mottosu / Biyografi
