@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import Link from "next/link"
 import { ArrowLeft, User, Calendar, MapPin, Coffee, Sparkles, Mail, Pencil } from "lucide-react"
 import { Header } from "@/components/header"
 import { istanbulDistricts } from "@/lib/coffee-data"
@@ -13,13 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 
 export default function ProfilePage() {
-  // GÜNCELLENDİ: Artık upuzun gömülü kod yok, direkt public klasöründeki kavisli omuzlu SVG'yi okuyor
+  // GÜNCELLENDİ: Sizin public/placeholder-avatar.svg dosyanızdan (kavisli yeni omuz tasarımıyla) doğrudan çeker
   const defaultAvatar = "/placeholder-avatar.svg"
 
   // Kullanıcı bilgileri state yapısı
   const [profileData, setProfileData] = useState({
-    fullName: "Hasan Topçu",
-    email: "hasan.topcu@example.com",
+    fullName: "Hasan Topçu", // Düzenlenemez kilitli alan
+    email: "hasan.topcu@example.com", // Düzenlenemez kilitli alan
     avatar: defaultAvatar, 
     birthDate: "1998-05-20",
     favoriteDistrict: "Kadikoy",
@@ -30,10 +31,12 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Kalem ikonlu butona tıklandığında görünmez dosya inputunu (galeriyi) tetikler
   const handleAvatarClick = () => {
     fileInputRef.current?.click()
   }
 
+  // Bilgisayardan veya telefondan resim seçildiğinde anında profil resmini günceller
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -43,7 +46,7 @@ export default function ProfilePage() {
           ...profileData,
           avatar: reader.result as string
         })
-        toast.success("Profil resmi başarıyla yüklendi!")
+        toast.success("Yeni profil resmi başarıyla yüklendi!")
       }
       reader.readAsDataURL(file)
     }
@@ -80,8 +83,8 @@ export default function ProfilePage() {
             <div className="md:col-span-1 space-y-6">
               <div className="rounded-2xl bg-card p-6 text-center shadow-sm ring-1 ring-border flex flex-col items-center">
                 
-                {/* Profil Resmi Alanı */}
-                <div className="relative h-28 w-28 rounded-full overflow-hidden mb-3 ring-4 ring-primary/10 bg-secondary flex items-center justify-center border-border">
+                {/* Profil Resmi Çerçevesi */}
+                <div className="relative h-28 w-28 rounded-full overflow-hidden mb-3 ring-4 ring-primary/10 bg-secondary flex items-center justify-center border border-border">
                   <img 
                     src={profileData.avatar} 
                     alt={profileData.fullName} 
@@ -89,7 +92,7 @@ export default function ProfilePage() {
                   />
                 </div>
 
-                {/* Profil Resmini Düzenle Butonu */}
+                {/* GÜNCELLENDİ: Profil Resmini Düzenle Kalem İkonlu Buton (Galeri Seçicili) */}
                 <button
                   type="button"
                   onClick={handleAvatarClick}
@@ -99,7 +102,7 @@ export default function ProfilePage() {
                   <span>Profil Resmini Düzenle</span>
                 </button>
 
-                {/* Gizli Dosya Giriş Elemanı */}
+                {/* Gizli Dosya Seçici Input (PC/Mobil Uyumlu) */}
                 <input 
                   type="file"
                   ref={fileInputRef}
@@ -120,7 +123,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* İstatistik Alanı */}
+              {/* GÜNCELLENDİ: İstatistik Alanı ("Ziyaret Edilen" kaldırıldı, sadece yorum ve puan kaldı) */}
               <div className="rounded-2xl bg-secondary/30 p-5 ring-1 ring-border/50">
                 <h3 className="text-sm font-semibold text-foreground mb-3">BrewMap Yolculuğun</h3>
                 <div className="grid grid-cols-2 gap-4 text-center">
@@ -146,7 +149,7 @@ export default function ProfilePage() {
 
                 <form onSubmit={handleSave} className="space-y-6">
                   
-                  {/* İsim Soyisim */}
+                  {/* İsim Soyisim (KİLİTLİ ALAN) */}
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-muted-foreground flex items-center gap-1.5">
                       <User className="h-4 w-4" /> Ad Soyad (Değiştirilemez)
@@ -174,7 +177,7 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {/* En Çok Takıldığı Cafe Bölgesi */}
+                  {/* En Çok Takıldığı Cafe Bölgesi (ÖZGÜN İSTANBUL İLÇELERİ LİSTESİ) */}
                   <div className="space-y-2">
                     <Label htmlFor="favoriteDistrict" className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4 text-primary" /> En Çok Takıldığı Kafe Bölgesi
@@ -196,7 +199,7 @@ export default function ProfilePage() {
                     </Select>
                   </div>
 
-                  {/* Favori Kahve Çeşidi */}
+                  {/* Öneri Alanı 1: Favori Kahve Çeşidi */}
                   <div className="space-y-2">
                     <Label htmlFor="favoriteCoffee" className="flex items-center gap-1.5">
                       <Coffee className="h-4 w-4 text-primary" /> Favori Kahve Demleme Çeşidi
@@ -218,7 +221,7 @@ export default function ProfilePage() {
                     </Select>
                   </div>
 
-                  {/* Kahve Mottosu / Biyografi */}
+                  {/* Öneri Alanı 2: Kahve Mottosu / Biyografi */}
                   <div className="space-y-2">
                     <Label htmlFor="bio" className="flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-primary" /> Kahve Mottosu / Biyografi
