@@ -152,7 +152,7 @@ export default function ProfilePage() {
                   {/* İsim Soyisim (KİLİTLİ ALAN) */}
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-muted-foreground flex items-center gap-1.5">
-                      <User className="h-4 w-4" /> Ad Soyad (Değiştirilemez)
+                      <User className="h-4 w-4" /> Ad Soyad 
                     </Label>
                     <Input 
                       id="fullName" 
@@ -180,7 +180,7 @@ export default function ProfilePage() {
                   {/* En Çok Takıldığı Cafe Bölgesi (ÖZGÜN İSTANBUL İLÇELERİ LİSTESİ) */}
                   <div className="space-y-2">
                     <Label htmlFor="favoriteDistrict" className="flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4 text-primary" /> En Çok Takıldığı Kafe Bölgesi
+                      <MapPin className="h-4 w-4 text-primary" /> En Çok Takıldığı Bölge
                     </Label>
                     <Select 
                       value={profileData.favoriteDistrict} 
