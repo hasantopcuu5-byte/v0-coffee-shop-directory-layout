@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react" // GÜNCELLENDİ: useEffect eklendi
 import Link from "next/link"
 import { ArrowLeft, User, Calendar, MapPin, Coffee, Sparkles, Mail, Pencil } from "lucide-react"
 import { Header } from "@/components/header"
@@ -12,21 +12,36 @@ import { Textarea } from "@/components/ui/textarea"
 import { PageTransition } from "@/components/page-transition"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider" // GÜNCELLENDİ: useAuth eklendi
 
 export default function ProfilePage() {
-  // GÜNCELLENDİ: Sizin public/placeholder-avatar.svg dosyanızdan (kavisli yeni omuz tasarımıyla) doğrudan çeker
   const defaultAvatar = "/placeholder-avatar.svg"
+  
+  // GÜNCELLENDİ: Firebase'den giriş yapan gerçek kullanıcıyı çekiyoruz
+  const { user } = useAuth() 
 
-  // Kullanıcı bilgileri state yapısı
+  // Kullanıcı bilgileri başlangıç state yapısı
   const [profileData, setProfileData] = useState({
-    fullName: "Hasan Topçu", // Düzenlenemez kilitli alan
-    email: "hasan.topcu@example.com", // Düzenlenemez kilitli alan
+    fullName: "Yükleniyor...", 
+    email: "Yükleniyor...", 
     avatar: defaultAvatar, 
     birthDate: "1998-05-20",
     favoriteDistrict: "Kadikoy",
     favoriteCoffee: "v60",
     bio: "Nitelikli kahve peşinde koşan bir yazılımcı. Kadıköy sokaklarındaki 3. nesil kahveciler favorim."
   })
+
+  // GÜNCELLENDİ: Kullanıcı oturum açtığında Google bilgilerini forma otomatik yerleştirir
+  useEffect(() => {
+    if (user) {
+      setProfileData(prev => ({
+        ...prev,
+        fullName: user.displayName || "İsimsiz Kullanıcı",
+        email: user.email || "",
+        avatar: user.photoURL || defaultAvatar
+      }))
+    }
+  }, [user])
 
   const [isSaving, setIsSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)

@@ -10,6 +10,7 @@ import { X, Search, MapPin, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
+
 export default function CoffeeDirectoryPage() {
   const [showCafeSearchModal, setShowCafeSearchModal] = useState(false)
   const [showDistrictModal, setShowDistrictModal] = useState(false)

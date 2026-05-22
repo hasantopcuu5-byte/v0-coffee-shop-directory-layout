@@ -127,7 +127,12 @@ const handleLogout = async () => {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 p-1 rounded-full hover:bg-secondary/80 transition-all focus:outline-none">
                   <div className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-primary/20 bg-secondary flex items-center justify-center">
-                    <img src={user.photoURL || defaultAvatarUrl} alt="Kullanıcı Profil Resmi" className="h-full w-full object-cover" />
+                    <img 
+  src={user.photoURL || defaultAvatarUrl} 
+  alt="Kullanıcı Profil Resmi" 
+  className="h-full w-full object-cover" 
+  referrerPolicy="no-referrer" 
+/>
                   </div>
                  <span className="hidden sm:inline text-sm font-medium text-foreground pr-1">{user.displayName || "Kullanıcı"}</span>
                 </button>
