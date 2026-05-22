@@ -1,3 +1,4 @@
+import { AuthProvider } from '@/components/auth-provider'
 import type { Metadata } from 'next'
 import { Merriweather } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
@@ -47,10 +48,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
 }
+          
+      

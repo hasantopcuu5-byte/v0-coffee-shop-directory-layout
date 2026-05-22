@@ -1,5 +1,7 @@
 "use client"
-
+import { signInWithPopup, signOut } from "firebase/auth"
+import { auth, googleProvider } from "@/lib/firebase"
+import { useAuth } from "@/components/auth-provider"
 import { Coffee, User, Moon, Sun, Search, MapPin, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
@@ -31,8 +33,26 @@ interface HeaderProps {
 
 export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }: HeaderProps) {
   const { theme, setTheme } = useTheme()
-  // Simüle edilmiş kullanıcı oturum durumu (Geliştirme aşaması için true yapıldı)
-  const [isLoggedIn, setIsLoggedIn] = useState(true) 
+  // Gerçek kullanıcı durumunu çağırıyoruz
+const { user } = useAuth() 
+
+// Google ile giriş yapma fonksiyonu
+const handleGoogleLogin = async () => {
+  try {
+    await signInWithPopup(auth, googleProvider)
+  } catch (error) {
+    console.error("Giriş yapılırken hata oluştu:", error)
+  }
+}
+
+// Çıkış yapma fonksiyonu
+const handleLogout = async () => {
+  try {
+    await signOut(auth)
+  } catch (error) {
+    console.error("Çıkış yapılırken hata oluştu:", error)
+  }
+}
   
   // GÜNCELLENDİ: Artık gömülü kod değil, direkt public klasöründeki güncellediğimiz SVG dosyasını çağırıyor
   const defaultAvatarUrl = "/placeholder-avatar.svg"
@@ -101,15 +121,15 @@ export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }:
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          {isLoggedIn ? (
+          {user ? (
             /* Giriş Yapmış Kullanıcı Menüsü */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 p-1 rounded-full hover:bg-secondary/80 transition-all focus:outline-none">
                   <div className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-primary/20 bg-secondary flex items-center justify-center">
-                    <img src={defaultAvatarUrl} alt="Kullanıcı Profil Resmi" className="h-full w-full object-cover" />
+                    <img src={user.photoURL || defaultAvatarUrl} alt="Kullanıcı Profil Resmi" className="h-full w-full object-cover" />
                   </div>
-                  <span className="hidden sm:inline text-sm font-medium text-foreground pr-1">Hasan Topçu</span>
+                 <span className="hidden sm:inline text-sm font-medium text-foreground pr-1">{user.displayName || "Kullanıcı"}</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 mt-1">
@@ -122,7 +142,7 @@ export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }:
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsLoggedIn(false)} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
+                 <DropdownMenuItem onClick={handleLogout}className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
                   <LogOut className="h-4 w-4" />
                   <span>Çıkış Yap</span>
                 </DropdownMenuItem>
@@ -156,7 +176,7 @@ export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }:
                   
                   {/* Giriş Yap Sekmesi */}
                   <TabsContent value="login">
-                    <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 mt-4">
+                    <form onSubmit={(e) => { e.preventDefault(); alert("Lütfen 'Google ile Devam Et' butonunu kullanın."); }} className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <Label htmlFor="email">E-posta</Label>
                         <Input id="email" type="email" placeholder="ornek@email.com" required />
@@ -178,7 +198,7 @@ export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }:
 
                   {/* Kayıt Ol Sekmesi */}
                   <TabsContent value="register">
-                    <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4 mt-4">
+                    <form onSubmit={(e) => { e.preventDefault(); alert("Lütfen 'Google ile Devam Et' butonunu kullanın."); }} className="space-y-4 mt-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Ad Soyad</Label>
                         <Input id="name" type="text" placeholder="Ad Soyad" required />
@@ -210,7 +230,7 @@ export function Header({ onCafeSearchClick, onDistrictClick, selectedDistrict }:
                 </div>
 
                 {/* Google Auth Button */}
-                <Button variant="outline" className="w-full" type="button" onClick={() => setIsLoggedIn(true)}>
+                <Button variant="outline" className="w-full" type="button" onClick={handleGoogleLogin}>
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                     <path
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
