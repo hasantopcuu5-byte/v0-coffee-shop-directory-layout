@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
-import { istanbulDistricts, getRemoteCoffeeShops, addRemoteCoffeeShop } from "@/lib/coffee-data"
+import { getRemoteCoffeeShops, addRemoteCoffeeShop } from "@/lib/coffee-data"
+// YENİ EKLENEN IMPORT SATIRI BURADA:
+import { istanbulDistrictsList, istanbulNeighborhoods } from "@/lib/istanbul"
 import { db } from "@/lib/firebase"
 import { doc, deleteDoc } from "firebase/firestore"
 
@@ -221,7 +223,7 @@ export default function AdminPage() {
             <Label className="text-muted-foreground">İlçe</Label>
             <Select value={formData.district} onValueChange={v => setFormData({...formData, district: v, neighborhood: ""})}>
               <SelectTrigger className="font-semibold text-base h-12"><SelectValue placeholder="İlçe Seç" /></SelectTrigger>
-              <SelectContent>{istanbulDistricts.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+              <SelectContent>{istanbulDistrictsList.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
