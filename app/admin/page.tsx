@@ -87,72 +87,42 @@ export default function AdminPage() {
     setImagePreviews(previews)
   }
 
-  // --- KAYDETME İŞLEMİ (FIREBASE STORAGE + FIREBASE FIRESTORE) ---
-  // --- SOSANSUZ DÖNGÜYÜ KIRAN ZAMAN AYARLI KAYDETME İŞLEMİ ---
+ // --- YENİ VE TEMİZ KAYDETME İŞLEMİ ---
   const handleSave = async () => {
     if (!formData.name) return toast.error("Lütfen kafe adını girin!")
     if (!formData.district || !formData.neighborhood) return toast.error("Lütfen İlçe ve Mahalle seçin!")
     if (imageFiles.length === 0) return toast.error("Lütfen en az 1 görsel seçin!")
 
-    // Çevre değişkenlerinin (Env) yüklenip yüklenmediğini kontrol etme kontrolü
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-      console.error("KRİTİK HATA: .env.local dosyasındaki Firebase anahtarları okunamıyor!");
-      return toast.error("HATA: Firebase konfigürasyonu (.env.local) eksik veya hatalı!");
-    }
-
     setIsSubmitting(true)
     const toastId = toast.loading("Adım 1/2: Görseller Firebase Storage'a yükleniyor...")
     
-    // Sonsuz döngüyü engelleyen yardımcı fonksiyon (15 saniye sınırı)
-    const timeout = (ms: number, stage: string) => 
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error(`${stage} aşaması zaman aşımına uğradı (Bağlantı Kurulamıyor)`)), ms)
-      );
-
     try {
-      console.log("=== KAFE KAYIT İŞLEMİ BAŞLADI ===");
-      console.log("1. Seçilen dosyalar Storage'a gönderiliyor...", imageFiles);
-
-      // Resim yükleme promises yapısı
+      // 1. Çoklu Resimleri Firebase Storage'a yükle
       const uploadPromises = imageFiles.map(async (file) => {
-        const fileRef = ref(storage, `coffee-shops/${Date.now()}_${file.name}`)
+        const fileRef = ref(storage, "coffee-shops/" + Date.now() + "_" + file.name)
         await uploadBytes(fileRef, file)
-        const url = await getDownloadURL(fileRef)
-        console.log(`-> Dosya yüklendi ve URL alındı: ${url}`);
-        return url
+        return getDownloadURL(fileRef)
       })
       
-      // 15 saniye içinde resimler yüklenmezse hata fırlatır
-      const uploadedUrls = await Promise.race([
-        Promise.all(uploadPromises),
-        timeout(15000, "Görsel Depolama (Storage)")
-      ]) as string[];
+      const uploadedUrls = await Promise.all(uploadPromises)
 
-      console.log("2. Görseller başarıyla yüklendi. Firestore adımına geçiliyor...");
       toast.loading("Adım 2/2: Mekan bilgileri Firestore'a kaydediliyor...", { id: toastId })
 
-      // Veritabanına yazma promises yapısı
-      const saveToFirestore = addRemoteCoffeeShop({
+      // 2. Verileri Firebase Firestore veritabanına kaydet
+      await addRemoteCoffeeShop({
         name: formData.name,
         image: uploadedUrls[0], 
         images: uploadedUrls, 
         address: formData.address,
-        location: `${formData.neighborhood}, ${formData.district}`,
+        location: formData.neighborhood + ", " + formData.district,
         district: formData.district,
         tags: amenities.slice(0, 3), 
         services: services,
         amenities: amenities,
         hours: hours,
         coordinates: { lat: 41.0082, lng: 28.9784 }
-      });
+      })
 
-      // 15 saniye içinde Firestore yanıt vermezse hata fırlatır
-      await Promise.race([
-        saveToFirestore,
-        timeout(15000, "Veritabanı Kayıt (Firestore)")
-      ]);
-
-      console.log("=== İŞLEM BAŞARIYLA TAMAMLANDI ===");
       toast.success("Mekan harika bir şekilde canlıya alındı!", { id: toastId })
       setView("list") 
       loadShops()
@@ -162,10 +132,9 @@ export default function AdminPage() {
       setImagePreviews([])
       setFormData({ name: "", address: "", district: "", neighborhood: "" })
 
-    } catch (error: any) {
-      console.error("=== KAYIT ESNASINDA TIKANMA YAŞANDI ===");
-      console.error(error);
-      toast.error(`Yayınlama Başarısız: ${error.message || "Bilinmeyen bir hata oluştu."}`, { id: toastId })
+    } catch (err: any) {
+      console.error("Kayıt hatası:", err)
+      toast.error("Yayınlama Başarısız: " + (err.message || "Bilinmeyen hata"), { id: toastId })
     } finally {
       setIsSubmitting(false)
     }
