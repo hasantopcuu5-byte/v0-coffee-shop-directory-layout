@@ -146,6 +146,17 @@ const handleLogout = async () => {
                     <span>Profili Düzenle</span>
                   </Link>
                 </DropdownMenuItem>
+
+                {/* YENİ: Sadece hasantopcuu5@gmail.com giriş yaptığında görünen buton */}
+                {user && user.email === "hasantopcuu5@gmail.com" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="cursor-pointer w-full flex items-center gap-2 text-primary font-semibold">
+                      <Coffee className="h-4 w-4" />
+                      <span>Admin Paneli</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
                  <DropdownMenuItem onClick={handleLogout}className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
                   <LogOut className="h-4 w-4" />
