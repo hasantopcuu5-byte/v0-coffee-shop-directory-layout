@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
-import { istanbulDistricts, istanbulNeighborhoods, getRemoteCoffeeShops, addRemoteCoffeeShop } from "@/lib/coffee-data"
+import { istanbulDistricts, getRemoteCoffeeShops, addRemoteCoffeeShop } from "@/lib/coffee-data"
 import { db } from "@/lib/firebase"
 import { doc, deleteDoc } from "firebase/firestore"
 
