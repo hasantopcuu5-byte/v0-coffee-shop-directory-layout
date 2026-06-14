@@ -9,6 +9,7 @@ import { PageTransition } from "@/components/page-transition"
 import { X, Search, MapPin, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import Typewriter from 'typewriter-effect';
 
 
 export default function CoffeeDirectoryPage() {
@@ -92,14 +93,30 @@ export default function CoffeeDirectoryPage() {
       <FilterBar />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-foreground">
+     <div className="mb-6 text-center">
+          <h1 className="text-2xl font-bold text-foreground h-8 flex justify-center items-center">
             {selectedDistrict 
               ? `${filteredShops.length} kahveci ${selectedDistrict} bölgesinde`
-              : "Karışık İstanbul Kafe Listelemesi"
+              : (
+                <Typewriter
+                  options={{
+                    strings: [
+                      "Bi kahve molası vermeye ne dersin?",
+                      "Arkadaşlarla buluşmalık harika mekanlar.",
+                      "Bilgisayarını alıp gidebileceğin en iyi kafeler...",
+                      "Bugün nerede kahve içsem?",
+                      "Hafta sonu planın için ilhama mı ihtiyacın var?"
+                    ],
+                    autoStart: true,
+                    loop: true,
+                    delay: 50,
+                    deleteSpeed: 30,
+                  }}
+                />
+              )
             }
           </h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-2 text-muted-foreground">
             {selectedDistrict 
               ? "Farklı ilçe seçmek için üst bardaki ilçe alanına tıklayın"
               : "İstanbul'un dört bir yanından harika kafeleri keşfedin"
