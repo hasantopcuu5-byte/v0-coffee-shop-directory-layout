@@ -109,8 +109,8 @@ export default function CoffeeDirectoryPage() {
                     ],
                     autoStart: true,
                     loop: true,
-                    delay: 50,
-                    deleteSpeed: 30,
+                    delay: 30,
+                    deleteSpeed: 15,
                   }}
                 />
               )
