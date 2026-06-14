@@ -1,199 +1,247 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
-import { istanbulDistricts, addRemoteCoffeeShop } from "@/lib/coffee-data"
+import { istanbulDistricts, getRemoteCoffeeShops, addRemoteCoffeeShop } from "@/lib/coffee-data"
+import { db, storage } from "@/lib/firebase"
+import { doc, deleteDoc } from "firebase/firestore"
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { CoffeeCard } from "@/components/coffee-card"
 import { toast } from "sonner"
-import { Plus, Trash, Store } from "lucide-react"
+import { Plus, Trash, Store, PlusCircle, Loader2 } from "lucide-react"
 
 export default function AdminPage() {
-  const [isSubmitting, setIsSaving] = useState(false)
-  
-  // Form Alanları State Yapısı
+  const [shops, setShops] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+
+  // Form Stateleri
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     name: "",
-    image: "",
     address: "",
-    location: "", // örn: "Moda, Kadıköy"
+    location: "",
     district: "",
     lat: "41.0082",
     lng: "28.9784"
   })
 
-  // Etiketler ve Hizmetler State
-  const [tags, setTags] = useState<string[]>([]) // wifi, vegan, pet
-  const [services, setServices] = useState<string[]>(["Espresso", "Filter Coffee"])
-  const [amenities, setAmenities] = useState<string[]>(["Wi-Fi"])
-
-  // Dinamik Alanlar için Geçici Input Stateleri (Örn yeni hizmet ekleme)
+  const [tags, setTags] = useState<string[]>([])
+  const [services, setServices] = useState<string[]>(["Espresso", "Filtre Kahve"])
   const [newService, setNewService] = useState("")
-  const [newAmenity, setNewAmenity] = useState("")
 
-  // Çalışma Saatleri Varsayılan Şablon
-  const [hours, setHours] = useState([
-    { day: "Pazartesi", time: "08:00 - 22:00" },
-    { day: "Salı", time: "08:00 - 22:00" },
-    { day: "Çarşamba", time: "08:00 - 22:00" },
-    { day: "Perşembe", time: "08:00 - 22:00" },
-    { day: "Cuma", time: "08:00 - 23:00" },
-    { day: "Cumartesi", time: "09:00 - 23:00" },
-    { day: "Pazar", time: "09:00 - 22:00" }
-  ])
+  // Veritabanından kafeleri çek
+  const loadShops = async () => {
+    setIsLoading(true)
+    try {
+      const data = await getRemoteCoffeeShops()
+      setShops(data)
+    } catch (error) {
+      toast.error("Kafeler yüklenirken hata oluştu.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
+  useEffect(() => {
+    loadShops()
+  }, [])
+
+  // Kafe Silme İşlemi
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bu kafeyi silmek istediğinize emin misiniz?")) return
+    try {
+      await deleteDoc(doc(db, "coffeeShops", id))
+      toast.success("Kafe başarıyla silindi!")
+      loadShops() // Listeyi yenile
+    } catch (error) {
+      toast.error("Silinirken bir hata oluştu.")
+    }
+  }
+
+  // Yeni Kafe Kaydetme (Görsel Yükleme + Firestore)
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.district) {
-      toast.error("Lütfen bir ilçe seçin!")
-      return
-    }
+    if (!formData.district) return toast.error("Lütfen bir ilçe seçin!")
+    if (!imageFile) return toast.error("Lütfen bilgisayarınızdan bir görsel seçin!")
 
-    setIsSaving(true)
+    setIsSubmitting(true)
     try {
+      // 1. Görseli Firebase Storage'a yükle
+      const fileRef = ref(storage, `coffee-shops/${Date.now()}_${imageFile.name}`)
+      await uploadBytes(fileRef, imageFile)
+      const imageUrl = await getDownloadURL(fileRef)
+
+      // 2. Verileri Firestore'a kaydet
       await addRemoteCoffeeShop({
         name: formData.name,
-        image: formData.image || "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80",
-        images: [formData.image || "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&q=80"],
+        image: imageUrl, // Storage'dan dönen gerçek URL
+        images: [imageUrl],
         address: formData.address,
         location: formData.location,
         district: formData.district,
         tags: tags,
         services: services,
-        amenities: amenities,
-        hours: hours,
+        amenities: ["Wi-Fi"], // Varsayılan özellik
+        hours: [
+          { day: "Pazartesi - Cuma", time: "08:00 - 22:00" },
+          { day: "Hafta Sonu", time: "09:00 - 23:00" }
+        ],
         coordinates: {
           lat: parseFloat(formData.lat),
           lng: parseFloat(formData.lng)
         }
       })
 
-      toast.success("Yeni kafe başarıyla Firestore veritabanına eklendi!")
+      toast.success("Yeni kafe başarıyla eklendi!")
+      setIsSheetOpen(false)
+      loadShops() // Listeyi yenile
+      
       // Formu sıfırla
-      setFormData({ name: "", image: "", address: "", location: "", district: "", lat: "41.0082", lng: "28.9784" })
+      setImageFile(null)
+      setFormData({ name: "", address: "", location: "", district: "", lat: "41.0082", lng: "28.9784" })
       setTags([])
+      setServices(["Espresso", "Filtre Kahve"])
     } catch (error) {
-      toast.error("Bir hata oluştu. Lütfen konsolu kontrol edin.")
+      toast.error("Kaydedilirken bir hata oluştu. Konsolu kontrol edin.")
+      console.error(error)
     } finally {
-      setIsSaving(false)
+      setIsSubmitting(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-background pb-12">
       <Header />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <Card className="shadow-md">
-          <CardHeader className="border-b border-border pb-4 mb-6">
-            <CardTitle className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Store className="h-6 w-6 text-primary" /> Admin Yönetim Paneli
-            </CardTitle>
-            <CardDescription>Buradan eklediğiniz kafeler anında canlı veritabanına kaydedilir.</CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <form onSubmit={handleSave} className="space-y-6">
-              
-              {/* Kafe Adı */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Kafe Adı</Label>
-                <Input id="name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Örn: Brew Lab" />
-              </div>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        
+        {/* Üst Bar: Başlık ve Yeni Ekle Butonu */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 border-b border-border pb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <Store className="h-8 w-8 text-primary" /> Admin Paneli
+            </h1>
+            <p className="text-muted-foreground mt-1">Sistemdeki tüm kafeleri buradan yönetebilirsiniz.</p>
+          </div>
 
-              {/* Fotoğraf Linki */}
-              <div className="space-y-2">
-                <Label htmlFor="image">Görsel URL (Unsplash vb.)</Label>
-                <Input id="image" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} placeholder="https://images.unsplash.com/..." />
-              </div>
+          {/* SAĞDAN AÇILAN EKLEME FORMU (SHEET) */}
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <Button className="rounded-full gap-2">
+                <PlusCircle className="h-5 w-5" /> Yeni Kafe Ekle
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+              <SheetHeader className="mb-6">
+                <SheetTitle>Yeni Kafe Ekle</SheetTitle>
+                <SheetDescription>Kafenin bilgilerini ve fotoğrafını girip canlıya alabilirsiniz.</SheetDescription>
+              </SheetHeader>
 
-              {/* İlçe Seçimi */}
-              <div className="space-y-2">
-                <Label>İstanbul İlçesi</Label>
-                <Select value={formData.district} onValueChange={value => setFormData({...formData, district: value})}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="İlçe seçin" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {istanbulDistricts.map(district => (
-                      <SelectItem key={district} value={district}>{district}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <form onSubmit={handleSave} className="space-y-5">
+                
+                {/* DOSYA YÜKLEME ALANI */}
+                <div className="space-y-2">
+                  <Label htmlFor="imageFile" className="font-semibold text-primary">Kafe Fotoğrafı Yükle</Label>
+                  <Input 
+                    id="imageFile" 
+                    type="file" 
+                    accept="image/*" 
+                    required 
+                    onChange={e => setImageFile(e.target.files?.[0] || null)} 
+                    className="cursor-pointer file:text-primary file:bg-primary/10 file:border-0 file:rounded-md file:px-4 file:py-1 hover:file:bg-primary/20"
+                  />
+                </div>
 
-              {/* Konum Özeti ve Açık Adres */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Kafe Adı</Label>
+                  <Input id="name" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Örn: Brew Lab" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>İstanbul İlçesi</Label>
+                  <Select value={formData.district} onValueChange={value => setFormData({...formData, district: value})}>
+                    <SelectTrigger><SelectValue placeholder="İlçe seçin" /></SelectTrigger>
+                    <SelectContent>
+                      {istanbulDistricts.map(district => (
+                        <SelectItem key={district} value={district}>{district}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="location">Konum Özeti</Label>
                   <Input id="location" required value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="Örn: Moda, Kadıköy" />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="address">Tam Açık Adres</Label>
                   <Input id="address" required value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="Caferağa Mah..." />
                 </div>
-              </div>
 
-              {/* Koordinatlar */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="lat">Enlem (Latitude)</Label>
-                  <Input id="lat" type="number" step="any" value={formData.lat} onChange={e => setFormData({...formData, lat: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lng">Boylam (Longitude)</Label>
-                  <Input id="lng" type="number" step="any" value={formData.lng} onChange={e => setFormData({...formData, lng: e.target.value})} />
-                </div>
-              </div>
-
-              {/* Filtre Etiketleri (Tags Overlay) */}
-              <div className="space-y-3 border-t pt-4">
-                <Label className="text-base font-semibold">Filtre Özellikleri</Label>
-                <div className="flex flex-wrap gap-6">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="wifi" checked={tags.includes("wifi")} onCheckedChange={(checked) => checked ? setTags([...tags, "wifi"]) : setTags(tags.filter(t => t !== "wifi"))} />
-                    <label htmlFor="wifi" className="text-sm font-medium">Wi-Fi Var</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="vegan" checked={tags.includes("vegan")} onCheckedChange={(checked) => checked ? setTags([...tags, "vegan"]) : setTags(tags.filter(t => t !== "vegan"))} />
-                    <label htmlFor="vegan" className="text-sm font-medium">Vegan Süt / Seçenekler</label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="pet" checked={tags.includes("pet")} onCheckedChange={(checked) => checked ? setTags([...tags, "pet"]) : setTags(tags.filter(t => t !== "pet"))} />
-                    <label htmlFor="pet" className="text-sm font-medium">Pet Friendly (Hayvan Dostu)</label>
+                <div className="space-y-3 border-t pt-4">
+                  <Label className="text-base font-semibold">Özellikler</Label>
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="wifi" checked={tags.includes("wifi")} onCheckedChange={(c) => c ? setTags([...tags, "wifi"]) : setTags(tags.filter(t => t !== "wifi"))} />
+                      <label htmlFor="wifi" className="text-sm">Wi-Fi Var</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="vegan" checked={tags.includes("vegan")} onCheckedChange={(c) => c ? setTags([...tags, "vegan"]) : setTags(tags.filter(t => t !== "vegan"))} />
+                      <label htmlFor="vegan" className="text-sm">Vegan Seçenekler</label>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Dinamik Hizmet (Services) Listesi */}
-              <div className="space-y-2 border-t pt-4">
-                <Label className="text-base font-semibold">Sunulan Kahveler / Servisler</Label>
-                <div className="flex gap-2">
-                  <Input value={newService} onChange={e => setNewService(e.target.value)} placeholder="Örn: Cold Brew, V60" />
-                  <Button type="button" onClick={() => { if(newService) { setServices([...services, newService]); setNewService(""); } }} variant="outline"><Plus className="h-4 w-4" /></Button>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {services.map((ser, index) => (
-                    <span key={index} className="inline-flex items-center gap-1 bg-secondary text-secondary-foreground text-xs px-2.5 py-1 rounded-full">
-                      {ser} <Trash className="h-3 w-3 text-destructive cursor-pointer" onClick={() => setServices(services.filter((_, i) => i !== index))} />
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Kaydet Butonu */}
-              <div className="flex justify-end pt-6 border-t border-border">
-                <Button type="submit" disabled={isSubmitting} className="rounded-full bg-primary text-primary-foreground font-medium px-8 shadow-sm">
-                  {isSubmitting ? "Firestore'a Kaydediliyor..." : "Mekanı Canlıya Ekle"}
+                <Button type="submit" disabled={isSubmitting} className="w-full mt-4">
+                  {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Yükleniyor...</> : "Kafeyi Ekle"}
                 </Button>
-              </div>
+              </form>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-            </form>
-          </CardContent>
-        </Card>
+        {/* KAFELERİN LİSTELENDİĞİ GRID YAPISI */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          </div>
+        ) : shops.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            <Store className="h-12 w-12 mx-auto mb-4 opacity-20" />
+            <p>Veritabanında henüz hiç kafe yok.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {shops.map((shop) => (
+              <div key={shop.id} className="relative group">
+                {/* Ana sayfadaki aynı CoffeeCard bileşeni */}
+                <CoffeeCard shop={shop} />
+                
+                {/* Hover olunca üstünde beliren Silme Butonu */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <Button 
+                    size="icon" 
+                    variant="destructive" 
+                    className="shadow-lg hover:scale-105 transition-transform"
+                    onClick={() => handleDelete(shop.id)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
       </main>
     </div>
   )
