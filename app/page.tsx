@@ -17,12 +17,20 @@ export default function CoffeeDirectoryPage() {
   const [cafeSearch, setCafeSearch] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null)
   
+  // YENİ EKLENEN KISIM: Karıştırılmış kafeleri tutacak state
+  const [shuffledShops, setShuffledShops] = useState<typeof coffeeShops>([])
+  
   const cafeInputRef = useRef<HTMLInputElement>(null)
 
-  // Filter coffee shops based on district only (cafe search navigates directly)
+  // YENİ EKLENEN KISIM: Sayfa yüklendiğinde kafeleri rastgele sırala
+  useEffect(() => {
+    setShuffledShops([...coffeeShops].sort(() => Math.random() - 0.5))
+  }, [])
+
+ // Filter coffee shops based on district only (cafe search navigates directly)
   const filteredShops = selectedDistrict
     ? coffeeShops.filter(shop => shop.district === selectedDistrict)
-    : coffeeShops
+    : shuffledShops // Varsayılan olarak rastgele listeyi kullan
 
   // Filtered cafe suggestions
   const cafeSuggestions = cafeSearch.length > 0
@@ -71,12 +79,7 @@ export default function CoffeeDirectoryPage() {
     setSelectedDistrict(null)
   }
 
-  const getFilterDescription = () => {
-    if (selectedDistrict) {
-      return `${selectedDistrict} bolgesinde`
-    }
-    return "yakininizdaki"
-  }
+  
 
   return (
     <PageTransition>
@@ -89,14 +92,17 @@ export default function CoffeeDirectoryPage() {
       <FilterBar />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 text-center">
+      <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-foreground">
-            {filteredShops.length} kahveci {getFilterDescription()}
+            {selectedDistrict 
+              ? `${filteredShops.length} kahveci ${selectedDistrict} bölgesinde`
+              : "Karışık İstanbul Kafe Listelemesi"
+            }
           </h1>
           <p className="mt-1 text-muted-foreground">
             {selectedDistrict 
-              ? "Farkli ilce secmek icin ust bardaki ilce alanina tiklayin"
-              : "Bolgenizdeki en iyi kafeleri kesfedin"
+              ? "Farklı ilçe seçmek için üst bardaki ilçe alanına tıklayın"
+              : "İstanbul'un dört bir yanından harika kafeleri keşfedin"
             }
           </p>
           {selectedDistrict && (
