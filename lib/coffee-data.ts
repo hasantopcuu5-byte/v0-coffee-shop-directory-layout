@@ -1,3 +1,5 @@
+import { db } from "./firebase";
+import { collection, getDocs, doc, getDoc, addDoc } from "firebase/firestore";
 export interface Review {
   id: number
   author: string
@@ -362,4 +364,49 @@ export const coffeeShops: CoffeeShop[] = [
 
 export function getCoffeeShopById(id: number): CoffeeShop | undefined {
   return coffeeShops.find(shop => shop.id === id)
+}
+// Firestore'dan tüm kafeleri çekme fonksiyonu
+export async function getRemoteCoffeeShops(): Promise<CoffeeShop[]> {
+  try {
+    const querySnapshot = await getDocs(collection(db, "coffeeShops"));
+    const shops: CoffeeShop[] = [];
+    querySnapshot.forEach((doc) => {
+      shops.push({ id: doc.id as any, ...doc.data() } as CoffeeShop);
+    });
+    return shops;
+  } catch (error) {
+    console.error("Kafeler çekilirken hata oluştu:", error);
+    return [];
+  }
+}
+
+// Firestore'dan tek bir kafeyi ID ile çekme fonksiyonu
+export async function getRemoteCoffeeShopById(id: string): Promise<CoffeeShop | null> {
+  try {
+    const docRef = doc(db, "coffeeShops", id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id as any, ...docSnap.data() } as CoffeeShop;
+    }
+    return null;
+  } catch (error) {
+    console.error("Kafe detayları çekilirken hata:", error);
+    return null;
+  }
+}
+
+// Firestore'a yeni kafe ekleme fonksiyonu
+export async function addRemoteCoffeeShop(shopData: Omit<CoffeeShop, "id" | "userReviews" | "rating" | "reviews">) {
+  try {
+    const docRef = await addDoc(collection(db, "coffeeShops"), {
+      ...shopData,
+      rating: 5.0, // Yeni eklenen kafe varsayılan 5 puan başlasın
+      reviews: 0,
+      userReviews: [] // Başlangıçta yorum yok
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Kafe eklenirken hata oluştu:", error);
+    throw error;
+  }
 }
